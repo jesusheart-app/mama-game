@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>엄마게임</title>
+<meta name="theme-color" content="#E88AA0">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="엄마게임">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF8F0;
+    --pink:#E88AA0;
+    --pink-dark:#C85F79;
+    --pink-soft:#F6DCE2;
+    --green:#5B8C5A;
+    --peach:#F4A96B;
+    --gold:#E8A94C;
+    --brown:#4A3B32;
+    --white:#FFFFFF;
+    --shadow: 0 6px 0 rgba(0,0,0,0.12);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--cream);
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--brown);
+    overscroll-behavior:none;
+    user-select:none;
+  }
+  #app{
+    max-width:560px;
+    margin:0 auto;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    padding:20px 16px 40px;
+  }
+  h1,h2,h3{ font-family:'Jua', sans-serif; font-weight:400; margin:0; }
+  .screen{ display:none; flex-direction:column; flex:1; animation:fadeIn .35s ease; }
+  .screen.active{ display:flex; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- HOME ---------- */
+  .home-title{ text-align:center; font-size:42px; color:var(--pink-dark); margin-top:6px; line-height:1.3; }
+  .home-sub{ text-align:center; font-size:20px; color:var(--brown); margin-top:6px; margin-bottom:26px; font-weight:700; }
+  .flower-hero{ text-align:center; font-size:70px; margin:6px 0 18px; }
+
+  .menu-btn{
+    display:flex; align-items:center; gap:18px;
+    background:var(--white); border:none; border-radius:26px;
+    padding:22px 22px; margin-bottom:20px; box-shadow:var(--shadow);
+    cursor:pointer; text-align:left; width:100%; transition:transform .08s;
+  }
+  .menu-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.12); }
+  .menu-btn .icon{
+    font-size:44px; width:76px; height:76px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:20px; flex-shrink:0;
+  }
+  .menu-btn.game1 .icon{ background:var(--pink-soft); }
+  .menu-btn.game2 .icon{ background:#FCE7D2; }
+  .menu-btn .txt-title{ font-family:'Jua',sans-serif; font-size:25px; color:var(--brown); }
+  .menu-btn .txt-sub{ font-size:15px; color:#8a7a70; margin-top:4px; font-weight:700; }
+  .menu-btn .badge{
+    margin-left:auto; font-size:16px; font-weight:900;
+    background:var(--gold); color:#fff; padding:8px 12px;
+    border-radius:14px; white-space:nowrap;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .icon-btn{
+    background:var(--white); border:none; border-radius:18px;
+    width:58px; height:58px; font-size:26px; box-shadow:var(--shadow);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:active{ transform:translateY(4px); box-shadow:none; }
+  .topbar-title{ font-family:'Jua',sans-serif; font-size:23px; flex:1; text-align:center; color:var(--pink-dark); }
+
+  /* ---------- MAIN LEVEL SELECT ---------- */
+  .level-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:10px; }
+  .level-cell{
+    aspect-ratio:1/1; border:none; border-radius:20px;
+    font-family:'Jua',sans-serif; font-size:24px; color:#fff;
+    background:var(--pink); box-shadow:var(--shadow); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  }
+  .level-cell:active{ transform:translateY(4px); box-shadow:none; }
+  .level-cell .dots{ font-size:12px; letter-spacing:2px; }
+  .level-cell.locked{ background:#D8CFC7; color:#9c9086; cursor:default; }
+  .level-cell.locked:active{ transform:none; box-shadow:var(--shadow); }
+  .level-cell.current{ box-shadow:0 0 0 4px var(--gold), var(--shadow); }
+
+  /* ---------- SUB LEVEL SELECT ---------- */
+  .sub-grid{ display:flex; flex-direction:column; gap:16px; margin-top:10px; }
+  .sub-cell{
+    display:flex; align-items:center; gap:16px;
+    background:var(--white); border:none; border-radius:22px;
+    padding:20px 22px; box-shadow:var(--shadow); cursor:pointer; text-align:left;
+  }
+  .sub-cell:active{ transform:translateY(4px); box-shadow:none; }
+  .sub-cell .num{
+    font-family:'Jua',sans-serif; font-size:26px; color:#fff;
+    background:var(--pink); width:56px; height:56px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .sub-cell .txt{ font-size:17px; font-weight:700; color:#8a7a70; }
+  .sub-cell.locked{ opacity:.55; cursor:default; }
+  .sub-cell.locked .num{ background:#D8CFC7; }
+  .sub-cell.locked:active{ transform:none; box-shadow:var(--shadow); }
+  .sub-cell.current{ box-shadow:0 0 0 4px var(--gold), var(--shadow); }
+
+  /* ---------- GAME BOARD ---------- */
+  .status-row{ display:flex; justify-content:center; gap:14px; margin-bottom:14px; font-weight:700; font-size:17px; }
+  .status-chip{ background:var(--white); border-radius:16px; padding:9px 16px; box-shadow:var(--shadow); }
+  .toast{
+    position:absolute; left:50%; top:74px; transform:translateX(-50%) translateY(-10px);
+    background:var(--brown); color:#fff; font-weight:700; font-size:15px;
+    padding:10px 18px; border-radius:16px; opacity:0; pointer-events:none;
+    transition:opacity .25s, transform .25s; z-index:40; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .board{ display:grid; gap:8px; flex:1; align-content:start; position:relative; }
+  .card{
+    aspect-ratio:1/1; border-radius:16px; border:none; cursor:pointer;
+    font-size:var(--card-font, 28px); display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 0 rgba(0,0,0,0.12); transition:transform .12s, opacity .3s, background .2s;
+    position:relative; line-height:1;
+  }
+  .card:active{ transform:scale(0.95); }
+  .card.back{ background:linear-gradient(135deg, var(--pink), var(--pink-dark)); color:#fff; }
+  .card.front{ background:var(--white); }
+  .card.stacked{ background:var(--white); box-shadow:0 4px 0 rgba(0,0,0,0.12), 0 8px 0 -2px #f0d9c8, 0 11px 0 -4px #e9c8ae; }
+  .card.matched{ visibility:hidden; }
+  .card.wrong{ background:#FBD2D2; }
+  .card.selected{ background:#FFF1D6; box-shadow:0 0 0 4px var(--gold); }
+  .card .badge-count{
+    position:absolute; top:-6px; right:-6px; background:var(--peach); color:#fff;
+    font-size:12px; font-weight:900; border-radius:10px; padding:2px 6px;
+    box-shadow:0 2px 0 rgba(0,0,0,0.15);
+  }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+  .card.shake{ animation:shake .3s; }
+
+  /* ---------- OVERLAY ---------- */
+  .overlay{ position:fixed; inset:0; background:rgba(74,59,50,0.55); display:none; align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .overlay.show{ display:flex; }
+  .overlay-card{ background:var(--white); border-radius:28px; padding:34px 26px; text-align:center; max-width:400px; width:100%; box-shadow:0 10px 0 rgba(0,0,0,0.15); }
+  .overlay-emoji{ font-size:64px; margin-bottom:10px; }
+  .overlay-title{ font-family:'Jua',sans-serif; font-size:29px; color:var(--pink-dark); margin-bottom:8px; }
+  .overlay-sub{ font-size:17px; font-weight:700; color:#8a7a70; margin-bottom:24px; }
+  .overlay-btn{
+    display:block; width:100%; border:none; border-radius:18px; padding:18px;
+    font-family:'Jua',sans-serif; font-size:22px; color:#fff; background:var(--pink);
+    box-shadow:0 5px 0 var(--pink-dark); margin-bottom:14px; cursor:pointer;
+  }
+  .overlay-btn.secondary{ background:var(--white); color:var(--brown); border:3px solid #eee1d8; box-shadow:none; }
+  .overlay-btn:active{ transform:translateY(4px); box-shadow:none; }
+
+  footer.hint{ text-align:center; font-size:15px; color:#a89a90; margin-top:auto; padding-top:20px; font-weight:700; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section class="screen active" id="screen-home">
+    <div class="flower-hero">🌷🌼🌸</div>
+    <h1 class="home-title">엄마게임</h1>
+    <p class="home-sub">하고 싶은 게임을 골라 눌러주세요</p>
+
+    <button class="menu-btn game1" onclick="openMainSelect('flip')">
+      <div class="icon">🃏</div>
+      <div>
+        <div class="txt-title">카드 뒤집기</div>
+        <div class="txt-sub">뒤집어서 같은 그림을 찾아요</div>
+      </div>
+      <div class="badge" id="badge-flip">1-1</div>
+    </button>
+
+    <button class="menu-btn game2" onclick="openMainSelect('stack')">
+      <div class="icon">🀄</div>
+      <div>
+        <div class="txt-title">그림 쌓기 게임</div>
+        <div class="txt-sub">앞 그림을 없애야 뒤 그림이 보여요</div>
+      </div>
+      <div class="badge" id="badge-stack">1-1</div>
+    </button>
+
+    <footer class="hint">화면을 손가락으로 톡톡 눌러주세요 😊</footer>
+  </section>
+
+  <!-- MAIN LEVEL SELECT -->
+  <section class="screen" id="screen-main">
+    <div class="topbar">
+      <button class="icon-btn" onclick="goHome()">◀</button>
+      <div class="topbar-title" id="main-select-title">단계 고르기</div>
+      <div style="width:58px"></div>
+    </div>
+    <div class="level-grid" id="main-grid"></div>
+    <footer class="hint">한 단계마다 세 번씩 연습할 수 있어요</footer>
+  </section>
+
+  <!-- SUB LEVEL SELECT -->
+  <section class="screen" id="screen-sub">
+    <div class="topbar">
+      <button class="icon-btn" onclick="backToMain()">◀</button>
+      <div class="topbar-title" id="sub-select-title">몇 번째로 할까요</div>
+      <div style="width:58px"></div>
+    </div>
+    <div class="sub-grid" id="sub-grid"></div>
+    <footer class="hint">셋 다 하시면 다음 단계가 열려요</footer>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="screen-game">
+    <div class="topbar">
+      <button class="icon-btn" onclick="backToSub()">◀</button>
+      <div class="topbar-title" id="game-title">놀이</div>
+      <button class="icon-btn" onclick="restartStage()">↻</button>
+    </div>
+    <div class="status-row">
+      <div class="status-chip" id="status-level">1-1</div>
+      <div class="status-chip" id="status-progress">0 / 0</div>
+    </div>
+    <div class="board" id="board">
+      <div class="toast" id="toast">그림을 다시 섞었어요!</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- CLEAR OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-emoji" id="overlay-emoji">🎉</div>
+    <div class="overlay-title" id="overlay-title">참 잘하셨어요!</div>
+    <div class="overlay-sub" id="overlay-sub">1-1 을 모두 맞히셨어요</div>
+    <button class="overlay-btn" id="overlay-next" onclick="onOverlayNext()">다음으로</button>
+    <button class="overlay-btn secondary" onclick="closeOverlay(); backToSub();">목록으로</button>
+  </div>
+</div>
+
+<script>
+/* ===================== 단계 설계 ===================== */
+const MAIN_COUNT = 12;
+const SUB_COUNT = 3;
+const STAGE_COUNT = MAIN_COUNT * SUB_COUNT; // 36
+
+// 카드 뒤집기: 메인 단계가 오를수록 짝 수가 천천히 늘어남(외워야 하니 천천히).
+// 같은 메인 단계 안 1-1,1-2,1-3 세 번은 똑같은 난이도로 반복 연습.
+function flipPairsFor(main, sub){
+  return 5 + main; // main1=6 ... main12=17
+}
+
+// 그림 쌓기: 메인 단계별 (더미 개수, 쌓인 높이) — "더미 개수(처음 깔리는 카드 수)"가
+// 매 단계 확실히 늘어나도록 설계함. 층수는 그보다 천천히 늘어남.
+const STACK_CONFIG = [
+  {piles:6,  depth:2}, //1  (12장)
+  {piles:8,  depth:2}, //2  (16장)
+  {piles:10, depth:2}, //3  (20장)
+  {piles:12, depth:2}, //4  (24장)
+  {piles:14, depth:3}, //5  (42장)
+  {piles:16, depth:3}, //6  (48장)
+  {piles:18, depth:3}, //7  (54장)
+  {piles:20, depth:3}, //8  (60장)
+  {piles:22, depth:4}, //9  (88장)
+  {piles:24, depth:4}, //10 (96장)
+  {piles:26, depth:4}, //11 (104장)
+  {piles:28, depth:4}, //12 (112장)
+];
+
+// 이상하거나 무서운 그림은 넣지 않고, 꽃/과일/동물/사물 같이 친근한 그림만 사용.
+// 누적 방식으로 등장: 1~3단계는 꽃만, 4~6단계는 꽃+과일, 7~9단계는 +동물, 10~12단계는 +사물.
+const EMOJI_CATEGORIES = [
+  ['🌸','🌷','🌹','🌻','🌼','🌺','💐','🌾'],                         // 꽃 (항상 먼저 등장)
+  ['🍎','🍊','🍇','🍓','🍑','🍍','🍉','🍌','🍒','🥝'],                 // 과일
+  ['🐶','🐱','🐰','🐻','🐥','🐢','🐦','🦋','🐨','🦢'],                 // 동물
+  ['⭐','🌙','☀️','🌈','☁️','🍀','🎈','🧸'],                          // 사물/자연
+];
+
+// 지금 메인 단계(1~12)에서 몇 번째 카테고리까지 열려있는지 계산 (3단계마다 하나씩 추가)
+function unlockedCategoryCount(main){
+  return Math.min(EMOJI_CATEGORIES.length, Math.ceil(main / 3));
+}
+
+function currentEmojiPool(main){
+  const n = unlockedCategoryCount(main);
+  let pool = [];
+  for(let i=0;i<n;i++) pool = pool.concat(EMOJI_CATEGORIES[i]);
+  return pool;
+}
+
+// pool(현재 단계에서 열린 그림들) 중에서 count개의 "짝 그림"을 골라줌.
+// pool의 첫 카테고리(꽃)가 항상 최소한으로라도 포함되도록 배려하고,
+// count가 pool 크기보다 많으면 그림을 반복해서 채움(정상 동작).
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function pickEmojis(count, pool){
+  const source = pool && pool.length ? pool : EMOJI_CATEGORIES.flat();
+  const flowers = shuffle(EMOJI_CATEGORIES[0].filter(e => source.includes(e)));
+  const others = shuffle(source.filter(e => !flowers.includes(e)));
+  const flowerCount = Math.min(count, flowers.length, Math.max(1, Math.ceil(count*0.25)));
+  let result = flowers.slice(0, flowerCount).concat(others.slice(0, count-flowerCount));
+  let cursor = 0;
+  const all = shuffle(source.slice());
+  while(result.length < count){
+    result.push(all[cursor % all.length]);
+    cursor++;
+  }
+  return shuffle(result).slice(0, count);
+}
+
+function calcCols(n){
+  if(n <= 9) return 3;
+  if(n <= 16) return 4;
+  if(n <= 25) return 5;
+  return 6;
+}
+
+// 카드 한 칸의 실제 크기에 맞춰 그림(이모지)이 꽉 차도록 글자 크기를 계산해준다
+function applyCardFontSize(cols){
+  const app = document.getElementById('app');
+  const board = document.getElementById('board');
+  const gap = 8;
+  const availWidth = app.clientWidth; // board는 app 안에 꽉 차게 들어있음
+  const cellWidth = (availWidth - gap * (cols - 1)) / cols;
+  let fontSize = cellWidth * 0.62;
+  fontSize = Math.max(22, Math.min(fontSize, 68));
+  board.style.setProperty('--card-font', fontSize + 'px');
+}
+
+function stageIndex(main, sub){ return (main-1)*SUB_COUNT + sub; }
+function fromIndex(idx){ return { main: Math.ceil(idx/SUB_COUNT), sub: ((idx-1)%SUB_COUNT)+1 }; }
+function stageLabel(main, sub){ return main+'-'+sub; }
+
+/* ===================== 저장(진행도): 게임별로 따로 저장 ===================== */
+function getUnlockedIndex(game){
+  try{
+    const v = parseInt(localStorage.getItem('mg2_unlocked_'+game) || '1', 10);
+    return isNaN(v) ? 1 : Math.min(v, STAGE_COUNT);
+  }catch(e){ return 1; }
+}
+function setUnlockedIndex(game, idx){
+  try{
+    const cur = getUnlockedIndex(game);
+    if(idx > cur) localStorage.setItem('mg2_unlocked_'+game, String(Math.min(idx, STAGE_COUNT)));
+  }catch(e){}
+}
+
+/* ===================== 화면 전환 ===================== */
+let currentGame = null;   // 'flip' | 'stack'
+let currentMain = 1;
+let currentSub = 1;
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome(){
+  refreshHomeBadges();
+  showScreen('screen-home');
+}
+
+function refreshHomeBadges(){
+  const fIdx = getUnlockedIndex('flip');
+  const sIdx = getUnlockedIndex('stack');
+  document.getElementById('badge-flip').textContent = stageLabel(fromIndex(fIdx).main, fromIndex(fIdx).sub);
+  document.getElementById('badge-stack').textContent = stageLabel(fromIndex(sIdx).main, fromIndex(sIdx).sub);
+}
+
+function openMainSelect(game){
+  currentGame = game;
+  document.getElementById('main-select-title').textContent =
+    game==='flip' ? '카드 뒤집기 · 단계 고르기' : '그림 쌓기 · 단계 고르기';
+  const unlockedIdx = getUnlockedIndex(game);
+  const unlocked = fromIndex(unlockedIdx);
+  const grid = document.getElementById('main-grid');
+  grid.innerHTML = '';
+  for(let m=1; m<=MAIN_COUNT; m++){
+    const locked = m > unlocked.main;
+    const isCurrent = m === unlocked.main;
+    // 이 메인 단계에서 몇 개의 서브가 열렸는지(점으로 표시)
+    let openSubs = 0;
+    if(m < unlocked.main) openSubs = SUB_COUNT;
+    else if(m === unlocked.main) openSubs = unlocked.sub;
+    const dots = Array.from({length:SUB_COUNT}, (_,i)=> i < openSubs ? '●' : '○').join('');
+
+    const btn = document.createElement('button');
+    btn.className = 'level-cell' + (locked?' locked':'') + (isCurrent?' current':'');
+    btn.innerHTML = locked ? `🔒<div class="dots">${m}단계</div>` : `${m}<div class="dots">${dots}</div>`;
+    if(!locked){ btn.onclick = () => openSubSelect(game, m); }
+    grid.appendChild(btn);
+  }
+  showScreen('screen-main');
+}
+
+function backToMain(){ openMainSelect(currentGame); }
+
+function openSubSelect(game, main){
+  currentGame = game;
+  currentMain = main;
+  document.getElementById('sub-select-title').textContent = main+'단계 · 몇 번째로 할까요';
+  const unlockedIdx = getUnlockedIndex(game);
+  const unlocked = fromIndex(unlockedIdx);
+  const grid = document.getElementById('sub-grid');
+  grid.innerHTML = '';
+  for(let s=1; s<=SUB_COUNT; s++){
+    const idx = stageIndex(main, s);
+    const locked = idx > unlockedIdx;
+    const isCurrent = idx === unlockedIdx;
+    const btn = document.createElement('button');
+    btn.className = 'sub-cell' + (locked?' locked':'') + (isCurrent?' current':'');
+    btn.innerHTML = `<div class="num">${locked?'🔒':s}</div><div class="txt">${main}-${s} 단계 ${locked ? '(잠김)' : (isCurrent ? '· 지금 여기예요' : '· 다시 하기')}</div>`;
+    if(!locked){ btn.onclick = () => startStage(game, main, s); }
+    grid.appendChild(btn);
+  }
+  showScreen('screen-sub');
+}
+
+function backToSub(){ openSubSelect(currentGame, currentMain); }
+
+/* ===================== 게임 공통 상태 ===================== */
+let flipDeck = [];       // 카드 뒤집기용
+let boardLocked = false;
+let matchedCount = 0;
+let totalPairsNow = 0;
+let flippedIds = [];
+
+let pileStacks = [];     // 그림 쌓기용: pileStacks[p] = [emoji,...] (마지막=맨 위)
+let selectedPiles = [];  // 현재 선택된 pile index들
+
+function startStage(game, main, sub){
+  currentGame = game;
+  currentMain = main;
+  currentSub = sub;
+  boardLocked = false;
+  matchedCount = 0;
+
+  document.getElementById('game-title').textContent = game==='flip' ? '카드 뒤집기' : '그림 쌓기 게임';
+  document.getElementById('status-level').textContent = stageLabel(main, sub);
+
+  if(game === 'flip'){
+    const pairs = flipPairsFor(main, sub);
+    totalPairsNow = pairs;
+    const emojis = pickEmojis(pairs, currentEmojiPool(main));
+    let cards = [];
+    emojis.forEach((e,i)=>{
+      cards.push({id:i*2,   emoji:e, matched:false});
+      cards.push({id:i*2+1, emoji:e, matched:false});
+    });
+    flipDeck = shuffle(cards);
+    flippedIds = [];
+    updateProgress();
+    const board = document.getElementById('board');
+    const cols = calcCols(cards.length);
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    applyCardFontSize(cols);
+    renderFlipBoard();
+  } else {
+    const cfg = STACK_CONFIG[main-1];
+    const gen = generateStackDeck(cfg.piles, cfg.depth, currentEmojiPool(main));
+    pileStacks = gen.piles;
+    totalPairsNow = gen.pairCount;
+    selectedPiles = [];
+    updateProgress();
+    const board = document.getElementById('board');
+    const cols = calcCols(cfg.piles);
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    applyCardFontSize(cols);
+    renderStackBoard();
+    resolveDeadlockIfAny();
+  }
+
+  showScreen('screen-game');
+}
+
+function restartStage(){ startStage(currentGame, currentMain, currentSub); }
+
+function updateProgress(){
+  document.getElementById('status-progress').textContent = matchedCount+' / '+totalPairsNow+' 짝';
+}
+
+/* ===================== 카드 뒤집기 렌더/로직 ===================== */
+function renderFlipBoard(){
+  const board = document.getElementById('board');
+  const toast = document.getElementById('toast');
+  board.innerHTML = '';
+  board.appendChild(toast);
+  flipDeck.forEach(card=>{
+    const btn = document.createElement('button');
+    btn.className = 'card';
+    const isUp = flippedIds.includes(card.id) || card.matched;
+    btn.classList.add(isUp ? 'front' : 'back');
+    if(card.matched) btn.classList.add('matched');
+    btn.textContent = isUp ? card.emoji : '🌷';
+    btn.onclick = () => onFlipClick(card.id);
+    board.appendChild(btn);
+  });
+}
+
+function onFlipClick(id){
+  if(boardLocked) return;
+  const card = flipDeck.find(c=>c.id===id);
+  if(!card || card.matched || flippedIds.includes(id)) return;
+
+  flippedIds.push(id);
+  renderFlipBoard();
+
+  if(flippedIds.length === 2){
+    boardLocked = true;
+    const [a,b] = flippedIds.map(fid=>flipDeck.find(c=>c.id===fid));
+    if(a.emoji === b.emoji){
+      setTimeout(()=>{
+        a.matched = true; b.matched = true;
+        matchedCount++;
+        flippedIds = [];
+        boardLocked = false;
+        updateProgress();
+        renderFlipBoard();
+        playDing();
+        checkStageClear();
+      }, 450);
+    } else {
+      setTimeout(()=>{
+        flippedIds = [];
+        boardLocked = false;
+        renderFlipBoard();
+      }, 800);
+    }
+  }
+}
+
+/* ===================== 그림 쌓기: 덱 생성(같은 더미에 같은 그림 두 장 X) ===================== */
+// 매 순간 "지금 가장 많이 남은 두 더미"를 하나씩 연결해 나간다 (증명된 방식이라 항상 성공함)
+function buildEdgesGreedy(counts){
+  let nodes = counts.map((c,i)=>({idx:i, deg:c})).filter(n=>n.deg>0);
+  let edges = [];
+  while(true){
+    nodes = nodes.filter(n=>n.deg>0);
+    if(nodes.length === 0) break;
+    if(nodes.length === 1) return null;
+    nodes = shuffle(nodes);
+    nodes.sort((a,b)=>b.deg-a.deg);
+    const a = nodes[0], b = nodes[1];
+    a.deg -= 1; b.deg -= 1;
+    edges.push([a.idx, b.idx]);
+  }
+  return edges;
+}
+
+function buildPileStacks(pileCount, edges, pairUnits){
+  const buckets = Array.from({length:pileCount}, ()=>[]);
+  edges.forEach((edge, i)=>{
+    const v = pairUnits[i];
+    buckets[edge[0]].push(v);
+    buckets[edge[1]].push(v);
+  });
+  return buckets.map(b => shuffle(b));
+}
+
+function generateStackDeck(pileCount, depth, pool){
+  const counts = Array.from({length:pileCount}, ()=>depth);
+  let edges = null;
+  for(let attempt=0; attempt<200 && !edges; attempt++){
+    edges = buildEdgesGreedy(counts);
+  }
+  const pairCount = edges.length;
+  const pairUnits = pickEmojis(pairCount, pool);
+  const piles = buildPileStacks(pileCount, edges, pairUnits);
+  return { piles, pairCount };
+}
+
+/* ===================== 그림 쌓기 렌더/로직 ===================== */
+function renderStackBoard(){
+  const board = document.getElementById('board');
+  const toast = document.getElementById('toast');
+  board.innerHTML = '';
+  board.appendChild(toast);
+  pileStacks.forEach((stack, p)=>{
+    const btn = document.createElement('button');
+    btn.className = 'card';
+    if(stack.length === 0){
+      btn.classList.add('matched');
+    } else {
+      btn.classList.add(stack.length > 1 ? 'stacked' : 'front');
+      if(selectedPiles.includes(p)) btn.classList.add('selected');
+      const top = stack[stack.length-1];
+      const label = document.createElement('span');
+      label.textContent = top;
+      btn.appendChild(label);
+      if(stack.length > 1){
+        const badge = document.createElement('span');
+        badge.className = 'badge-count';
+        badge.textContent = '×' + stack.length;
+        btn.appendChild(badge);
+      }
+      btn.onclick = () => onStackClick(p);
+    }
+    board.appendChild(btn);
+  });
+}
+
+function onStackClick(p){
+  if(boardLocked) return;
+  if(!pileStacks[p] || pileStacks[p].length === 0) return;
+  if(selectedPiles.includes(p)) return;
+
+  selectedPiles.push(p);
+  renderStackBoard();
+
+  if(selectedPiles.length === 2){
+    boardLocked = true;
+    const [pa, pb] = selectedPiles;
+    const ea = pileStacks[pa][pileStacks[pa].length-1];
+    const eb = pileStacks[pb][pileStacks[pb].length-1];
+    if(ea === eb){
+      setTimeout(()=>{
+        pileStacks[pa].pop();
+        pileStacks[pb].pop();
+        matchedCount++;
+        selectedPiles = [];
+        boardLocked = false;
+        updateProgress();
+        renderStackBoard();
+        playDing();
+        checkStageClear();
+        if(!isStageCleared()) resolveDeadlockIfAny();
+      }, 350);
+    } else {
+      const cells = document.querySelectorAll('.card.selected');
+      cells.forEach(el=>el.classList.add('wrong','shake'));
+      setTimeout(()=>{
+        selectedPiles = [];
+        boardLocked = false;
+        renderStackBoard();
+      }, 550);
+    }
+  }
+}
+
+function isStageCleared(){
+  return pileStacks.every(s => s.length === 0);
+}
+
+// 지금 보이는 맨 위 그림들 중에 짝지을 수 있는 게 하나도 없으면, 남은 그림들을 다시 섞어준다
+function resolveDeadlockIfAny(){
+  const tops = [];
+  pileStacks.forEach((s,p)=>{ if(s.length>0) tops.push({p, e:s[s.length-1]}); });
+  if(tops.length < 2) return;
+  const seen = {};
+  let hasMatch = false;
+  tops.forEach(t=>{
+    if(seen[t.e]){ hasMatch = true; }
+    seen[t.e] = true;
+  });
+  if(hasMatch) return;
+
+  const ok = reshuffleRemainingPiles();
+  if(ok){
+    renderStackBoard();
+    showToast('그림을 다시 섞었어요!');
+    // 재섞음 후에도 우연히 또 안 맞을 수 있어 한 번 더 확인
+    setTimeout(()=>resolveDeadlockIfAny(), 50);
+  }
+}
+
+// 남은 카드를, 지금 비어있는 더미 칸까지 포함해서 최대한 고르게 다시 나눠준다.
+// (더미가 딱 1개만 남아 "같은 더미 안에 서로 다른 그림이 갇히는" 상황을 원천적으로 막기 위함)
+function reshuffleRemainingPiles(){
+  const total = pileStacks.reduce((a,s)=>a+s.length, 0);
+  if(total === 0) return false;
+
+  const slotCount = Math.min(pileStacks.length, total);
+  const n = Math.max(2, slotCount);
+  const order = shuffle(pileStacks.map((s,i)=>i)).slice(0, n);
+  const base = Math.floor(total/n), extra = total % n;
+  const counts = new Array(pileStacks.length).fill(0);
+  order.forEach((idx,i)=>{ counts[idx] = base + (i < extra ? 1 : 0); });
+
+  const values = [];
+  pileStacks.forEach(s => s.forEach(e => values.push(e)));
+  const byVal = {};
+  values.forEach(v => { byVal[v] = (byVal[v]||0) + 1; });
+  let pairUnits = [];
+  Object.keys(byVal).forEach(v => { for(let i=0;i<byVal[v]/2;i++) pairUnits.push(v); });
+  pairUnits = shuffle(pairUnits);
+
+  let edges = null;
+  for(let attempt=0; attempt<200 && !edges; attempt++){
+    edges = buildEdgesGreedy(counts);
+  }
+  if(!edges) return false;
+
+  const newPiles = buildPileStacks(pileStacks.length, edges, pairUnits);
+  for(let p=0; p<pileStacks.length; p++) pileStacks[p] = newPiles[p] || [];
+  return true;
+}
+
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 1400);
+}
+
+/* ===================== 단계 클리어 처리 ===================== */
+function checkStageClear(){
+  if(matchedCount >= totalPairsNow){
+    const idx = stageIndex(currentMain, currentSub);
+    setUnlockedIndex(currentGame, Math.min(idx+1, STAGE_COUNT));
+    setTimeout(()=>showClearOverlay(), 350);
+  }
+}
+
+function showClearOverlay(){
+  const idx = stageIndex(currentMain, currentSub);
+  const isLast = idx >= STAGE_COUNT;
+  document.getElementById('overlay-emoji').textContent = isLast ? '🏅' : '🎉';
+  document.getElementById('overlay-title').textContent = isLast ? '최고예요!' : '참 잘하셨어요!';
+  document.getElementById('overlay-sub').textContent = isLast
+    ? '모든 단계를 다 깨셨어요 👏'
+    : (stageLabel(currentMain,currentSub)+' 을 모두 맞히셨어요');
+  const nextBtn = document.getElementById('overlay-next');
+  if(isLast){
+    nextBtn.style.display = 'none';
+  } else {
+    const nxt = fromIndex(idx+1);
+    nextBtn.style.display = 'block';
+    nextBtn.textContent = stageLabel(nxt.main, nxt.sub)+' 로 가기';
+  }
+  document.getElementById('overlay').classList.add('show');
+}
+function closeOverlay(){ document.getElementById('overlay').classList.remove('show'); }
+function onOverlayNext(){
+  closeOverlay();
+  const idx = Math.min(stageIndex(currentMain, currentSub)+1, STAGE_COUNT);
+  const nxt = fromIndex(idx);
+  startStage(currentGame, nxt.main, nxt.sub);
+}
+
+/* ===================== 소리(짧은 딩동) ===================== */
+let audioCtx;
+function playDing(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, audioCtx.currentTime);
+    o.frequency.setValueAtTime(1175, audioCtx.currentTime+0.1);
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.35);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+0.35);
+  }catch(e){}
+}
+
+/* ===================== 시작 ===================== */
+refreshHomeBadges();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
