@@ -1,0 +1,26 @@
+{
+  "name": "엄마게임",
+  "short_name": "엄마게임",
+  "description": "카드 뒤집기와 그림 짝 찾기가 함께 들어있는 어르신용 그림 게임",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8F0",
+  "theme_color": "#E88AA0",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
